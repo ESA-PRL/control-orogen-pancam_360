@@ -1,0 +1,53 @@
+name "pancam_360"
+
+import_types_from "pancam_360Types.hpp"
+import_types_from "controldev/ControlDevTypes.hpp"
+import_types_from "base"
+
+task_context "Task" do
+    needs_configuration
+
+    property("positionTilt", "double", 30).
+    	doc("PanCam tilt position for all positions in degrees")
+    property("panoramaPictures", "int", 9).
+    	doc("How many pictures to take for a 360 panorama picture, must be an odd number")
+    property("positionSeparation", "double", 30).
+    	doc("Angle separation between pictures, in degrees")
+    property("resolutionPerPosition", "double", 185.1429).
+    	doc("Axis resolution per position moved (in seconds/arc)")
+    property("positionErrorMargin", "double", 0.1).
+    	doc("PanCam pan and tilt position error margin")
+    property("frameDelayTimeMs", "int", 100).
+    	doc("Minimum delay in milliseconds before saving a frame after the PanCam reaches its goal position")
+
+    # Input ports
+    input_port("raw_command", "/controldev/RawCommand").
+        doc("Input from joystick to toggle the panorama mode")
+    input_port("pan_angle_in", "double").
+        doc("Feedback from the PTU pan angle")
+    input_port("tilt_angle_in", "double").
+        doc("Feedback from the PTU tilt angle")
+    input_port("left_frame_in", ro_ptr('base::samples::frame::Frame')).
+        doc("Input of the left camera of the PTU")
+    input_port("right_frame_in", ro_ptr('base::samples::frame::Frame')).
+        doc("Input of the right camera of the PTU")
+    input_port("start", "bool").
+        doc("Start taking a 360 degree image")
+
+    # Output ports
+    output_port("pan_angle_out", "double").
+        doc("PTU pan command")
+    output_port("tilt_angle_out", "double").
+        doc("PTU tilt command")
+    output_port("left_frame_out", ro_ptr('base::samples::frame::Frame')).
+        doc("Output of the left camera of the PTU")
+    output_port("right_frame_out", ro_ptr('base::samples::frame::Frame')).
+        doc("Output of the right camera of the PTU")
+    output_port("frame", "/pancam_360/PanCamTimestampedFrame").
+        doc("Timestamped frame with both images and PTU angles")
+    output_port("end", "bool").
+        doc("Flag indicating the end of the 360 degree image taking")
+
+    periodic 0.01
+end
+
