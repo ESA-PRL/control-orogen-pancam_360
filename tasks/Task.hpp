@@ -40,7 +40,6 @@ namespace pancam_360
         double tilt_angle;
         
         int set_counter;
-        bool start;
         double position_separation;
         int panorama_pictures;
         double resolutionPerPosition;

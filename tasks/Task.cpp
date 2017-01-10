@@ -4,7 +4,6 @@ using namespace pancam_360;
 
 Task::Task(std::string const& name):
     TaskBase(name),
-    start(false),
     save_frame(false),
     left_frame_saved(false),
     right_frame_saved(false),
@@ -15,7 +14,6 @@ Task::Task(std::string const& name):
 
 Task::Task(std::string const& name, RTT::ExecutionEngine* engine):
     TaskBase(name, engine),
-    start(false),
     save_frame(false),
     left_frame_saved(false),
     right_frame_saved(false),
@@ -62,6 +60,7 @@ bool Task::configureHook()
     pan_target_set = false;
     tilt_target_set = false;
     
+    // Must return true to indicate that configuration was successful and the stopped state can be enabled
     return true;
 }
 
@@ -71,6 +70,8 @@ bool Task::startHook()
     {
         return false;
     }
+    
+    // Return true to call updateHook over and over
     return true;
 }
 
@@ -78,22 +79,7 @@ void Task::updateHook()
 {
     TaskBase::updateHook();
     
-    if(_start.read(start) == RTT::NewData)
-    {
-    }
-    
-    if(_raw_command.read(joystick_command) == RTT::NewData)
-    {
-        // Got joystick data
-        // The reading already sets the variable
-        if(joystick_command.buttonValue[Y])
-        {
-            // Toggle the PanCam panorama mode with Y button
-            start = true;
-        }
-    }
-    
-    if(_pan_angle_in.read(pan_angle_in) == RTT::NewData && start)
+    if(_pan_angle_in.read(pan_angle_in) == RTT::NewData && state() == RUNNING)
     {
         // Got new data on the pan position
         // Check if the pan and tilt angles has arrived to requested positions
@@ -130,8 +116,11 @@ void Task::updateHook()
                     position_index = 0;
                     pan_target_set = false;
                     tilt_target_set = false;
-                    start = false;
-                    _end.write(true);
+                    
+                    // Change the state to STOPPED
+                    state(STOPPED);
+                    // This must be explicitly called to stop the component at low level or there will be issues in ruby
+                    stop();
                 }
                 else
                 {
@@ -154,7 +143,7 @@ void Task::updateHook()
         }
     }
     
-    if(_tilt_angle_in.read(tilt_angle_in) == RTT::NewData && start)
+    if(_tilt_angle_in.read(tilt_angle_in) == RTT::NewData && state() == RUNNING)
     {
         // Got new data on the tilt position
         if(fabs(tilt_angle_in - tilt_angle) > position_error_margin && !tilt_target_set)
@@ -165,7 +154,7 @@ void Task::updateHook()
         }
     }
     
-    if(_left_frame_in.read(left_frame) == RTT::NewData && start && save_frame)
+    if(_left_frame_in.read(left_frame) == RTT::NewData && state() == RUNNING && save_frame)
     {
         if(left_frame->time > goal_arrival_time + frame_delay_um)
         {
@@ -174,7 +163,7 @@ void Task::updateHook()
         }
     }
     
-    if(_right_frame_in.read(right_frame) == RTT::NewData && start && save_frame)
+    if(_right_frame_in.read(right_frame) == RTT::NewData && state() == RUNNING && save_frame)
     {
         // Frames always come in pairs, no frame synchronisation is required
         if(right_frame->time > goal_arrival_time + frame_delay_um)
