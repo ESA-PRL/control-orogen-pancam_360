@@ -2,7 +2,7 @@
 
 ## Overview
 
-This package automatically takes 360 degree pictures with the PanCam. When the routine is enabled the module instructs the PanCam to a predefined positions, waits until it reaches this position and saves the next incoming image frames to make sure the images are not blurred because of the PTU movement. Then in proceeds to the next position until all pictures are taken. Upon completion of the set a flag is set in a special output port dedicated for this purpose.
+This package automatically takes 360 degree pictures with the PanCam. When the component is started it instructs the PanCam to a predefined position, waits until it reaches this position and saves the next incoming image frames to make sure the images are not blurred because of the PTU movement. Then in proceeds to the next position until all pictures are taken. Upon completion of the set the component stops itself (state set to `STOPPED`).
 
 The tilt angle, pan angle separation and number of images are defined via the parameters.
 
@@ -39,10 +39,6 @@ Execute the following to build the package:
 
 #### Inputs
 
-* **`raw_command`** (/controldev/RawCommand)
-
-Raw messages coming from a joystick or gamepad, used to toggle the panorama mode.
-
 * **`pan_angle_in`** (/double)
 
 Feedback from the PTU pan angle, for example for the [ptu_directedperception](https://github.com/rock-drivers/drivers-orogen-ptu_directedperception) package.
@@ -58,10 +54,6 @@ Input of the left camera of the PTU.
 * **`right_frame_in`** (base::samples::frame::Frame)
 
 Input of the right camera of the PTU.
-
-* **`start`** (/bool)
-
-Start taking a 360 degree image.
 
 #### Outputs
 
@@ -84,10 +76,6 @@ Output of the right camera of the PTU.
 * **`frame`** (/pancam_panorama/PanCamTimestampedFrame)
 
 Output of a structure containing both images as well as the PTU pan and tilt angles with a timestamp, useful for logging.
-
-* **`end`** (/bool)
-
-Flag indicating the end of the 360 degree image taking. Only sends `true` once all images are taken, otherwise does not send anything.
 
 #### Parameters
 
