@@ -1,7 +1,6 @@
 name "pancam_360"
 
 import_types_from "pancam_360Types.hpp"
-import_types_from "controldev/ControlDevTypes.hpp"
 import_types_from "base"
 
 task_context "Task" do

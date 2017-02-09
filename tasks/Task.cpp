@@ -57,9 +57,6 @@ bool Task::configureHook()
     position_goal = position_order[position_index];
     frame_delay_um.microseconds = _frameDelayTimeMs.get() * 1000LL;
     
-    pan_target_set = false;
-    tilt_target_set = false;
-    
     // Must return true to indicate that configuration was successful and the stopped state can be enabled
     return true;
 }
@@ -70,6 +67,13 @@ bool Task::startHook()
     {
         return false;
     }
+    
+    pan_target_set = false;
+    tilt_target_set = false;
+    
+    // Reset PanCam position index so it would start from the beginning next time
+    position_index = 0;
+    position_goal = position_order[position_index];
     
     // Return true to call updateHook over and over
     return true;
@@ -182,9 +186,6 @@ void Task::errorHook()
 void Task::stopHook()
 {
     TaskBase::stopHook();
-    
-    // Reset PanCam position index so it would start from the beginning next time
-    position_index = 0;
 }
 
 void Task::cleanupHook()
