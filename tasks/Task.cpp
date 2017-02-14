@@ -33,17 +33,17 @@ bool Task::configureHook()
         return false;
     }
     
-    resolutionPerPosition = _resolutionPerPosition.get();
+    panResolution = _panResolution.get() * 1000;
+    tiltResolution = _tiltResolution.get() * 1000;
     
-    // 185.1428 sec arc * .002778° = 0.051428
-    // To get 90 degrees: 90/0.051428 = 1750
-    angleToStepsConstant = 3.6f / resolutionPerPosition;
+    // To get 90 degrees pan angle: 90/0.051428 = 1750
+    // To get 45 degrees pan angle: 45/0.012857 = 3500
     
     // Transform angles (in degrees) to steps for the motor
-    position_separation = _positionSeparation.get() * angleToStepsConstant;
+    position_separation = _positionSeparation.get() / panResolution;
     panorama_pictures = _panoramaPictures.get();
-    tilt_angle = _positionTilt.get() * angleToStepsConstant;
-    position_error_margin = _positionErrorMargin.get() * angleToStepsConstant;
+    position_error_margin_pan = _positionErrorMargin.get() / panResolution;
+    position_error_margin_tilt = _positionErrorMargin.get() / tiltResolution;
     
     position_order = new double[panorama_pictures];
     
@@ -85,9 +85,10 @@ void Task::updateHook()
     
     if(_pan_angle_in.read(pan_angle_in) == RTT::NewData && state() == RUNNING)
     {
+        tilt_angle = _positionTilt.get() / tiltResolution;
         // Got new data on the pan position
         // Check if the pan and tilt angles has arrived to requested positions
-        if(fabs(pan_angle_in - position_goal) < position_error_margin && fabs(tilt_angle_in - tilt_angle) < position_error_margin)
+        if(fabs(pan_angle_in - position_goal) < position_error_margin_pan && fabs(tilt_angle_in - tilt_angle) < position_error_margin_tilt)
         {
             if(!save_frame)
             {
@@ -99,8 +100,8 @@ void Task::updateHook()
             {
                 // Save the timestamped frame with PTU angles
                 pancam_frame.time = left_frame->time;
-                pancam_frame.angle_pan_degrees = pan_angle_in / angleToStepsConstant;
-                pancam_frame.angle_tilt_degrees = tilt_angle_in / angleToStepsConstant;
+                pancam_frame.angle_pan_degrees = pan_angle_in / panResolution;
+                pancam_frame.angle_tilt_degrees = tilt_angle_in / tiltResolution;
                 pancam_frame.left_frame = *left_frame;
                 pancam_frame.right_frame = *right_frame;
                 pancam_frame.set = set_counter;
@@ -149,8 +150,9 @@ void Task::updateHook()
     
     if(_tilt_angle_in.read(tilt_angle_in) == RTT::NewData && state() == RUNNING)
     {
+        tilt_angle = _positionTilt.get() / tiltResolution;
         // Got new data on the tilt position
-        if(fabs(tilt_angle_in - tilt_angle) > position_error_margin && !tilt_target_set)
+        if(fabs(tilt_angle_in - tilt_angle) > position_error_margin_tilt && !tilt_target_set)
         {
             // Send the signal to the PTU until it reaches the requested tilt position
             _tilt_angle_out.write(tilt_angle);

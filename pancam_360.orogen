@@ -12,8 +12,10 @@ task_context "Task" do
     	doc("How many pictures to take for a 360 panorama picture, must be an odd number")
     property("positionSeparation", "double", 30).
     	doc("Angle separation between pictures, in degrees")
-    property("resolutionPerPosition", "double", 185.1429).
-    	doc("Axis resolution per position moved (in seconds/arc)")
+    property("panResolution", "double", 0.051429).
+    	doc("Pan axis resolution (deg/pos)")
+    property("tiltResolution", "double", 0.012857).
+    	doc("Tilt axis resolution (deg/pos)")
     property("positionErrorMargin", "double", 0.1).
     	doc("PanCam pan and tilt position error margin")
     property("frameDelayTimeMs", "int", 100).
