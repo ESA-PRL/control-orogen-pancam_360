@@ -67,11 +67,11 @@ Tilt motion command directed to a pan-tilt unit, for example for the [ptu_direct
 
 Output of the left camera of the PTU.
 
-* **`right_frame_out`** (/double)
+* **`right_frame_out`** (base::samples::frame::Frame)
 
 Output of the right camera of the PTU.
 
-* **`pan_angle_out_degrees`** (base::samples::frame::Frame)
+* **`pan_angle_out_degrees`** (/double)
 
 PTU pan angle in degrees.
 
