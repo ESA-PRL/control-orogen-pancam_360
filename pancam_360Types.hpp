@@ -5,7 +5,8 @@
 #include <base/samples/Frame.hpp>
 
 namespace pancam_360 {
-    // Timestamped frame with angles and both images
+    // Abandoned as not used
+    /*// Timestamped frame with angles and both images
     struct PanCamTimestampedFrame
     {
         // Time at which the frame was taken
@@ -21,7 +22,7 @@ namespace pancam_360 {
         
         // Set to which the picture belongs to
         int set;
-    };
+    };*/
 }
 
 #endif

@@ -99,13 +99,19 @@ void Task::updateHook()
             else if(left_frame_saved && right_frame_saved)
             {
                 // Save the timestamped frame with PTU angles
-                pancam_frame.time = left_frame->time;
+                /*pancam_frame.time = left_frame->time;
                 pancam_frame.angle_pan_degrees = pan_angle_in * panResolution;
                 pancam_frame.angle_tilt_degrees = tilt_angle_in * tiltResolution;
                 pancam_frame.left_frame = *left_frame;
                 pancam_frame.right_frame = *right_frame;
                 pancam_frame.set = set_counter;
-                _frame.write(pancam_frame);
+                _frame.write(pancam_frame);*/
+                
+                _left_frame_out.write(left_frame);
+                _right_frame_out.write(right_frame);
+                _pan_angle_out_degrees.write(pan_angle_in * panResolution);
+                _tilt_angle_out_degrees.write(tilt_angle_in * tiltResolution);
+                _set_id.write(set_counter);
                 
                 // Reset flags
                 save_frame = false;

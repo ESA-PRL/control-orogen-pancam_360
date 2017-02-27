@@ -61,7 +61,7 @@ namespace pancam_360
         bool save_frame, left_frame_saved, right_frame_saved;
         
         // Structure for saving the timestamped pan and tilt angles for logging
-        PanCamTimestampedFrame pancam_frame;
+        //PanCamTimestampedFrame pancam_frame;
 
     public:
         Task(std::string const& name = "pancam_panorama::Task");

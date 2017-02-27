@@ -40,8 +40,15 @@ task_context "Task" do
         doc("Output of the left camera of the PTU")
     output_port("right_frame_out", ro_ptr('base::samples::frame::Frame')).
         doc("Output of the right camera of the PTU")
-    output_port("frame", "/pancam_360/PanCamTimestampedFrame").
-        doc("Timestamped frame with both images and PTU angles")
+    output_port("pan_angle_out_degrees", "double").
+        doc("PTU pan angle in degrees")
+    output_port("tilt_angle_out_degrees", "double").
+        doc("PTU tilt angle in degrees")
+    output_port("set_id", "int").
+        doc("Identification number for all the pictures for one 360 set")
+    # This is abandoned as delogging custom types is terribly inconvenient
+    #output_port("frame", "/pancam_360/PanCamTimestampedFrame").
+    #    doc("Timestamped frame with both images and PTU angles")
 
     periodic 0.01
 end

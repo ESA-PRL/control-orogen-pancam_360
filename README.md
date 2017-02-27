@@ -6,8 +6,6 @@ This package automatically takes 360 degree pictures with the PanCam. When the c
 
 The tilt angle, pan angle separation and number of images are defined via the parameters.
 
-For logging the package has a special structure that contains the timestamped left and right pictures with the PTU angles as well as a counter indicating to which set the images belong to.
-
 **Authors: Karl Kangur  
 Contact: Martin Azkarate  
 Affiliation: Automation and Robotics Laboratories, ESTEC, ESA**
@@ -26,7 +24,7 @@ This package depends on the following packages:
 
 In order to install, clone the latest version from this repository into your workspace under `control/orogen/motion_translator`, add the following line to `autoproj/manifest` under `layout:`
 
-    - control/orogen/pancam_panorama
+    - control/orogen/pancam_360
 
 Execute the following to build the package:
 
@@ -69,13 +67,21 @@ Tilt motion command directed to a pan-tilt unit, for example for the [ptu_direct
 
 Output of the left camera of the PTU.
 
-* **`right_frame_out`** (base::samples::frame::Frame)
+* **`right_frame_out`** (/double)
 
 Output of the right camera of the PTU.
 
-* **`frame`** (/pancam_panorama/PanCamTimestampedFrame)
+* **`pan_angle_out_degrees`** (base::samples::frame::Frame)
 
-Output of a structure containing both images as well as the PTU pan and tilt angles with a timestamp, useful for logging.
+PTU pan angle in degrees.
+
+* **`tilt_angle_out_degrees`** (/double)
+
+PTU tilt angle in degrees.
+
+* **`set_id`** (/int)
+
+Identification number for all the pictures for one 360 set.
 
 #### Parameters
 
