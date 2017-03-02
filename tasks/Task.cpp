@@ -170,7 +170,6 @@ void Task::updateHook()
     {
         if(left_frame->time > goal_arrival_time + frame_delay_um)
         {
-            _left_frame_out.write(left_frame);
             left_frame_saved = true;
         }
     }
@@ -180,7 +179,6 @@ void Task::updateHook()
         // Frames always come in pairs, no frame synchronisation is required
         if(right_frame->time > goal_arrival_time + frame_delay_um)
         {
-            _right_frame_out.write(right_frame);
             right_frame_saved = true;
         }
     }
