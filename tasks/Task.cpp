@@ -40,21 +40,9 @@ bool Task::configureHook()
     // To get 45 degrees pan angle: 45/0.012857 = 3500
     
     // Transform angles (in degrees) to steps for the motor
-    position_separation = _positionSeparation.get() / panResolution;
-    panorama_pictures = _panoramaPictures.get();
     position_error_margin_pan = _positionErrorMargin.get() / panResolution;
     position_error_margin_tilt = _positionErrorMargin.get() / tiltResolution;
     
-    position_order = new double[panorama_pictures];
-    
-    // Define all the positions
-    for(int i = 0; i < panorama_pictures; i++)
-    {
-        position_order[i] = position_separation * (i - (panorama_pictures - 1) / 2);
-    }
-    
-    // Set the first position
-    position_goal = position_order[position_index];
     frame_delay_um.microseconds = _frameDelayTimeMs.get() * 1000LL;
     
     // Must return true to indicate that configuration was successful and the stopped state can be enabled
@@ -67,6 +55,17 @@ bool Task::startHook()
     {
         return false;
     }
+    
+    // Define all the positions
+    position_separation = _positionSeparation.get() / panResolution;
+    panorama_pictures = _panoramaPictures.get();
+    position_order = new double[panorama_pictures];
+    for(int i = 0; i < panorama_pictures; i++)
+    {
+        position_order[i] = position_separation * (i - (panorama_pictures - 1) / 2);
+    }
+    // Set the first position
+    position_goal = position_order[position_index];
     
     pan_target_set = false;
     tilt_target_set = false;
