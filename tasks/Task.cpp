@@ -3,22 +3,12 @@
 using namespace pancam_360;
 
 Task::Task(std::string const& name):
-    TaskBase(name),
-    save_frame(false),
-    left_frame_saved(false),
-    right_frame_saved(false),
-    position_index(0),
-    set_counter(0)
+    TaskBase(name)
 {
 }
 
 Task::Task(std::string const& name, RTT::ExecutionEngine* engine):
-    TaskBase(name, engine),
-    save_frame(false),
-    left_frame_saved(false),
-    right_frame_saved(false),
-    position_index(0),
-    set_counter(0)
+    TaskBase(name, engine)
 {
 }
 
@@ -33,16 +23,13 @@ bool Task::configureHook()
         return false;
     }
     
-    panResolution = _panResolution.get() * 1000;
-    tiltResolution = _tiltResolution.get() * 1000;
+    save_frame = false;
+    left_frame_saved = false;
+    right_frame_saved = false;
+    position_index = 0;
+    set_counter = 0;
     
-    // To get 90 degrees pan angle: 90/0.051428 = 1750
-    // To get 45 degrees pan angle: 45/0.012857 = 3500
-    
-    // Transform angles (in degrees) to steps for the motor
-    position_error_margin_pan = _positionErrorMargin.get() / panResolution;
-    position_error_margin_tilt = _positionErrorMargin.get() / tiltResolution;
-    
+    position_error_margin = _positionErrorMargin.get() * DEG2RAD;
     frame_delay_um.microseconds = _frameDelayTimeMs.get() * 1000LL;
     
     // Must return true to indicate that configuration was successful and the stopped state can be enabled
@@ -56,25 +43,30 @@ bool Task::startHook()
         return false;
     }
     
-    // Define all the positions
-    position_separation = _positionSeparation.get() / panResolution;
-    panorama_pictures = _panoramaPictures.get();
-    position_order = new double[panorama_pictures];
-    for(int i = 0; i < panorama_pictures; i++)
+    // Load all the positions from the configuration file
+    /*
+    The .yml configuration file contents must look like the following:
+    cameraPositions:
+      - data
+        - 0.0
+        - 0.0
+      - data:
+        - 30.0
+        - 20.0
+    First value is the pan position, second is for the tilt, in degrees
+    */
+    camera_positions = _cameraPositions.get();
+    
+    // Report an error when the list is empty
+    if(camera_positions.empty())
     {
-        position_order[i] = position_separation * (i - (panorama_pictures - 1) / 2);
+        std::cout << "pancam_360: cameraPositions is empty" << std::endl;
+        return false;
     }
-    // Set the first position
-    position_goal = position_order[position_index];
     
-    pan_target_set = false;
-    tilt_target_set = false;
-    
-    // Reset PanCam position index so it would start from the beginning next time
+    // Reset PanCam position index so it would start from the beginning
     position_index = 0;
-    position_goal = position_order[position_index];
     
-    // Return true to call updateHook over and over
     return true;
 }
 
@@ -82,12 +74,15 @@ void Task::updateHook()
 {
     TaskBase::updateHook();
     
+    // Got new data on the pan position
     if(_pan_angle_in.read(pan_angle_in) == RTT::NewData && state() == RUNNING)
     {
-        tilt_angle = _positionTilt.get() / tiltResolution;
-        // Got new data on the pan position
-        // Check if the pan and tilt angles has arrived to requested positions
-        if(fabs(pan_angle_in - position_goal) < position_error_margin_pan && fabs(tilt_angle_in - tilt_angle) < position_error_margin_tilt)
+        // Get the current pan and tilt goal positions
+        tilt_angle_goal = camera_positions[position_index][TILT] * DEG2RAD;
+        pan_angle_goal = camera_positions[position_index][PAN] * DEG2RAD;
+        
+        // Check if the pan and tilt angles have arrived to requested positions
+        if(fabs(pan_angle_in - pan_angle_goal) <= position_error_margin && fabs(tilt_angle_temp - tilt_angle_goal) <= position_error_margin)
         {
             if(!save_frame)
             {
@@ -97,19 +92,11 @@ void Task::updateHook()
             }
             else if(left_frame_saved && right_frame_saved)
             {
-                // Save the timestamped frame with PTU angles
-                /*pancam_frame.time = left_frame->time;
-                pancam_frame.angle_pan_degrees = pan_angle_in * panResolution;
-                pancam_frame.angle_tilt_degrees = tilt_angle_in * tiltResolution;
-                pancam_frame.left_frame = *left_frame;
-                pancam_frame.right_frame = *right_frame;
-                pancam_frame.set = set_counter;
-                _frame.write(pancam_frame);*/
-                
+                // Both cameras have taken a picture, output the pair with position information and set number
                 _left_frame_out.write(left_frame);
                 _right_frame_out.write(right_frame);
-                _pan_angle_out_degrees.write(pan_angle_in * panResolution);
-                _tilt_angle_out_degrees.write(tilt_angle_in * tiltResolution);
+                _pan_angle_out_degrees.write(pan_angle_in / DEG2RAD);
+                _tilt_angle_out_degrees.write(tilt_angle_temp / DEG2RAD);
                 _set_id.write(set_counter);
                 
                 // Reset flags
@@ -118,14 +105,13 @@ void Task::updateHook()
                 right_frame_saved = false;
                 
                 // Final position reached
-                if(position_index == panorama_pictures - 1)
+                if(position_index == camera_positions.size() - 1)
                 {
                     // Increment the set counter so that the next set would have a different identification number
                     set_counter++;
+                    
                     // 360 degree image was taken, stop, reset and set end flag
                     position_index = 0;
-                    pan_target_set = false;
-                    tilt_target_set = false;
                     
                     // Change the state to STOPPED
                     state(STOPPED);
@@ -134,34 +120,33 @@ void Task::updateHook()
                 }
                 else
                 {
-                    // Pictures have been taken, proceed to the next position
-                    // Loop back to 0 instead of going to over panorama_pictures
-                    position_index = (position_index + 1) % panorama_pictures;
-                    
-                    // Set the pointer to the next goal
-                    position_goal = position_order[position_index];
+                    // Picture pair has been taken, proceed to the next position
+                    position_index++;
                     
                     // Send signal to move to the next position to the PTU
-                    _pan_angle_out.write(position_goal);
+                    _pan_angle_out.write(camera_positions[position_index][PAN] * DEG2RAD);
+                    _tilt_angle_out.write(camera_positions[position_index][TILT] * DEG2RAD);
                 }
             }
         }
-        else if(!pan_target_set)
+        else
         {
-            _pan_angle_out.write(position_goal);
-            pan_target_set = true;
+            _pan_angle_out.write(camera_positions[position_index][PAN] * DEG2RAD);
         }
     }
     
     if(_tilt_angle_in.read(tilt_angle_in) == RTT::NewData && state() == RUNNING)
     {
-        tilt_angle = _positionTilt.get() / tiltResolution;
+        // Get the tilt position current value and goal
+        // Tilt position has a multiplier because of the gearing
+        tilt_angle_temp = tilt_angle_in / TILT_MULTIPLIER;
+        tilt_angle_goal = camera_positions[position_index][TILT] * DEG2RAD;
+        
         // Got new data on the tilt position
-        if(fabs(tilt_angle_in - tilt_angle) > position_error_margin_tilt && !tilt_target_set)
+        if(fabs(tilt_angle_temp - tilt_angle_goal) > position_error_margin)
         {
             // Send the signal to the PTU until it reaches the requested tilt position
-            _tilt_angle_out.write(tilt_angle);
-            tilt_target_set = true;
+            _tilt_angle_out.write(tilt_angle_goal * TILT_MULTIPLIER);
         }
     }
     

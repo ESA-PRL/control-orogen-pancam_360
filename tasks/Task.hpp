@@ -23,45 +23,46 @@ namespace pancam_360
         RJOY
     };
     
+    // Pan-tilt axis names
+    enum Axis
+    {
+        PAN = 0,
+        TILT = 1
+    };
+    
     class Task : public TaskBase
     {
 	friend class TaskBase;
     protected:
-        controldev::RawCommand joystick_command;
+        static const double DEG2RAD = 3.14159/180;
+        // For tilt angles they need to be multiplied by 4 to get them in proper units because of the gearing
+        static const double TILT_MULTIPLIER = 4;
         
         // PTU pan and tilt angles from the PTU module (inputs for feedback)
         double pan_angle_in;
         double tilt_angle_in;
+        // The tilt angle needs a multiplier, the value is stored in tilt_angle_temp
+        // as tilt_angle_in in keeps getting overwritten for some reason...
+        double tilt_angle_temp;
         
         // Position error margin for the pan and tilt positions
-        double position_error_margin_pan;
-        double position_error_margin_tilt;
-        
-        // Tilt angle at which the PanCam should be when taking pictures
-        double tilt_angle;
-        
+        double position_error_margin;
         int set_counter;
-        double position_separation;
-        int panorama_pictures;
-        double panResolution;
-        double tiltResolution;
         
-        // Order in which the positions are traversed
-        int position_index;
-        double * position_order;
-        // Pointer to a double to mark the next goal
-        double position_goal;
-        bool pan_target_set;
-        bool tilt_target_set;
+        // Vector containing the pan and tilt position for every picture
+        std::vector<base::Vector2d> camera_positions;
+        // Current position index
+        unsigned int position_index;
+        double pan_angle_goal;
+        double tilt_angle_goal;
         
         base::Time goal_arrival_time;
         RTT::extras::ReadOnlyPointer<base::samples::frame::Frame> left_frame, right_frame;
         
         base::Time frame_delay_um;
-        bool save_frame, left_frame_saved, right_frame_saved;
-        
-        // Structure for saving the timestamped pan and tilt angles for logging
-        //PanCamTimestampedFrame pancam_frame;
+        bool save_frame;
+        bool left_frame_saved;
+        bool right_frame_saved;
 
     public:
         Task(std::string const& name = "pancam_panorama::Task");

@@ -2,9 +2,9 @@
 
 ## Overview
 
-This package automatically takes 360 degree pictures with the PanCam. When the component is started it instructs the PanCam to a predefined position, waits until it reaches this position and saves the next incoming image frames to make sure the images are not blurred because of the PTU movement. Then in proceeds to the next position until all pictures are taken. Upon completion of the set the component stops itself (state set to `STOPPED`).
+This package automatically takes pictures at defined positions with the PanCam. It waits until the pan-tilt unit reaches a position and saves the next incoming image frames to make sure the images are not blurred because of the PTU movement. Then in proceeds to the next position until all pictures are taken. Upon completion of the set the component stops itself (state set to `STOPPED`).
 
-The tilt angle, pan angle separation and number of images are defined via the parameters.
+The pan and tilt angles are defined via the configuration file.
 
 **Authors: Karl Kangur  
 Contact: Martin Azkarate  
@@ -15,14 +15,11 @@ Affiliation: Automation and Robotics Laboratories, ESTEC, ESA**
 
 ### Dependencies
 
-This package depends on the following packages:
-
-* [drivers/controldev](https://github.com/rock-drivers/drivers-controldev)
-* [drivers/orogen/controldev](https://github.com/rock-drivers/drivers-orogen-controldev)
+This package does not depend on any other packages.
 
 ### Building
 
-In order to install, clone the latest version from this repository into your workspace under `control/orogen/motion_translator`, add the following line to `autoproj/manifest` under `layout:`
+In order to install, clone the latest version from this repository into your workspace under `control/orogen/pancam_360`, add the following line to `autoproj/manifest` under `layout:`
 
     - control/orogen/pancam_360
 
@@ -85,17 +82,19 @@ Identification number for all the pictures for one 360 set.
 
 #### Parameters
 
-* **`positionTilt`** (/double)
+* **`cameraPositions`** (/std/vector</base/Vector2d>)
 
-PanCam tilt position for all positions in degrees.
+Camera pan/tilt orientations for pictures, in degrees.
 
-* **`panoramaPictures`** (/int)
+In the `.yml` configuration file this parameter looks like the following:
 
-How many pictures to take for a 360 panorama picture, must be an odd number.
-
-* **`positionSeparation`** (/double)
-
-Angle separation between pictures, in degrees.
+    cameraPositions:
+      - data:
+        - 0.0
+        - 20.0
+      - data:
+        - -30.0
+        - 20.0
 
 * **`positionErrorMargin`** (/double)
 

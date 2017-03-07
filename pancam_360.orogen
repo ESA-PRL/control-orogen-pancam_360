@@ -5,19 +5,11 @@ import_types_from "base"
 
 task_context "Task" do
     needs_configuration
-
-    property("positionTilt", "double", 30).
-    	doc("PanCam tilt position for all positions in degrees")
-    property("panoramaPictures", "int", 9).
-    	doc("How many pictures to take for a 360 panorama picture, must be an odd number")
-    property("positionSeparation", "double", 30).
-    	doc("Angle separation between pictures, in degrees")
-    property("panResolution", "double", 0.051429).
-    	doc("Pan axis resolution (deg/pos)")
-    property("tiltResolution", "double", 0.012857).
-    	doc("Tilt axis resolution (deg/pos)")
+    
+    property("cameraPositions", "/std/vector</base/Vector2d>").
+        doc("Camera pan/tilt orientations for pictures, in degrees")
     property("positionErrorMargin", "double", 0.1).
-    	doc("PanCam pan and tilt position error margin")
+    	doc("PanCam pan and tilt position error margin, in degrees")
     property("frameDelayTimeMs", "int", 100).
     	doc("Minimum delay in milliseconds before saving a frame after the PanCam reaches its goal position")
 
@@ -41,14 +33,11 @@ task_context "Task" do
     output_port("right_frame_out", ro_ptr('base::samples::frame::Frame')).
         doc("Output of the right camera of the PTU")
     output_port("pan_angle_out_degrees", "double").
-        doc("PTU pan angle in degrees")
+        doc("PTU pan angle, in degrees")
     output_port("tilt_angle_out_degrees", "double").
-        doc("PTU tilt angle in degrees")
+        doc("PTU tilt angle, in degrees")
     output_port("set_id", "int").
-        doc("Identification number for all the pictures for one 360 set")
-    # This is abandoned as delogging custom types is terribly inconvenient
-    #output_port("frame", "/pancam_360/PanCamTimestampedFrame").
-    #    doc("Timestamped frame with both images and PTU angles")
+        doc("Identification number for all the pictures in a set")
 
     periodic 0.01
 end
