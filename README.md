@@ -82,7 +82,7 @@ Identification number for all the pictures for one 360 set.
 
 #### Parameters
 
-* **`cameraPositions`** (/std/vector</base/Vector2d>)
+* **`cameraPositions`** (/std/vector\</base/Vector2d\>)
 
 Camera pan/tilt orientations for pictures, in degrees.
 
