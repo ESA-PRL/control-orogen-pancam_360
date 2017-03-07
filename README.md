@@ -104,7 +104,3 @@ PanCam pan position error margin in degrees.
 
 Minimum delay in milliseconds before saving a frame after the PanCam reaches its goal position.
 
-* **`resolutionPerPosition`** (/double)
-
-Axis resolution per position moved (in seconds/arc), used to transform degrees to motor steps, see the datasheet for the value.
-
