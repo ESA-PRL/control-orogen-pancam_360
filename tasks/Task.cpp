@@ -125,7 +125,7 @@ void Task::updateHook()
                     
                     // Send signal to move to the next position to the PTU
                     _pan_angle_out.write(camera_positions[position_index][PAN] * DEG2RAD);
-                    _tilt_angle_out.write(camera_positions[position_index][TILT] * DEG2RAD);
+                    _tilt_angle_out.write(camera_positions[position_index][TILT] * DEG2RAD * TILT_MULTIPLIER);
                 }
             }
         }
