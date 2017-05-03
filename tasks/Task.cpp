@@ -74,11 +74,19 @@ void Task::updateHook()
 {
     TaskBase::updateHook();
     
+    if(_trigger_tilt.read(trigger_tilt) == RTT::NewData){
+        triggered=true;
+    }
+ 
+    if(_sync_in.read(sync) == RTT::NewData){
+        processed=true;
+    }
+   
     // Got new data on the pan position
-    if(_pan_angle_in.read(pan_angle_in) == RTT::NewData && state() == RUNNING)
+    if(_pan_angle_in.read(pan_angle_in) == RTT::NewData && triggered)
     {
         // Get the current pan and tilt goal positions
-        tilt_angle_goal = camera_positions[position_index][TILT] * DEG2RAD;
+        tilt_angle_goal = trigger_tilt * DEG2RAD;
         pan_angle_goal = camera_positions[position_index][PAN] * DEG2RAD;
         
         // Check if the pan and tilt angles have arrived to requested positions
@@ -103,7 +111,10 @@ void Task::updateHook()
                 save_frame = false;
                 left_frame_saved = false;
                 right_frame_saved = false;
-                
+            }
+            else if (processed)
+            { 
+                processed=false;
                 // Final position reached
                 if(position_index == camera_positions.size() - 1)
                 {
@@ -113,10 +124,11 @@ void Task::updateHook()
                     // 360 degree image was taken, stop, reset and set end flag
                     position_index = 0;
                     
+                    triggered=false;
                     // Change the state to STOPPED
-                    state(STOPPED);
+                    //state(STOPPED);
                     // This must be explicitly called to stop the component at low level or there will be issues in ruby
-                    stop();
+                    //stop();
                 }
                 else
                 {
@@ -125,7 +137,7 @@ void Task::updateHook()
                     
                     // Send signal to move to the next position to the PTU
                     _pan_angle_out.write(camera_positions[position_index][PAN] * DEG2RAD);
-                    _tilt_angle_out.write(camera_positions[position_index][TILT] * DEG2RAD * TILT_MULTIPLIER);
+                    _tilt_angle_out.write(trigger_tilt * DEG2RAD * TILT_MULTIPLIER);
                 }
             }
         }
@@ -135,12 +147,12 @@ void Task::updateHook()
         }
     }
     
-    if(_tilt_angle_in.read(tilt_angle_in) == RTT::NewData && state() == RUNNING)
+    if(_tilt_angle_in.read(tilt_angle_in) == RTT::NewData && triggered)
     {
         // Get the tilt position current value and goal
         // Tilt position has a multiplier because of the gearing
         tilt_angle_temp = tilt_angle_in / TILT_MULTIPLIER;
-        tilt_angle_goal = camera_positions[position_index][TILT] * DEG2RAD;
+        tilt_angle_goal = trigger_tilt * DEG2RAD;
         
         // Got new data on the tilt position
         if(fabs(tilt_angle_temp - tilt_angle_goal) > position_error_margin)
@@ -150,7 +162,7 @@ void Task::updateHook()
         }
     }
     
-    if(_left_frame_in.read(left_frame) == RTT::NewData && state() == RUNNING && save_frame)
+    if(_left_frame_in.read(left_frame) == RTT::NewData && triggered && save_frame)
     {
         if(left_frame->time > goal_arrival_time + frame_delay_um)
         {
@@ -158,7 +170,7 @@ void Task::updateHook()
         }
     }
     
-    if(_right_frame_in.read(right_frame) == RTT::NewData && state() == RUNNING && save_frame)
+    if(_right_frame_in.read(right_frame) == RTT::NewData && triggered && save_frame)
     {
         // Frames always come in pairs, no frame synchronisation is required
         if(right_frame->time > goal_arrival_time + frame_delay_um)

@@ -44,7 +44,13 @@ namespace pancam_360
         // The tilt angle needs a multiplier, the value is stored in tilt_angle_temp
         // as tilt_angle_in in keeps getting overwritten for some reason...
         double tilt_angle_temp;
-        
+
+        // Variables used for Tenerife field test where 360 panorama acquisitions are triggered externally with a fixed tilt angle
+        double trigger_tilt;        
+        int sync;
+        bool triggered;
+        bool processed;
+
         // Position error margin for the pan and tilt positions
         double position_error_margin;
         int set_counter;
