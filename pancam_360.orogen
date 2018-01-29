@@ -25,7 +25,7 @@ task_context "Task" do
     input_port("trigger_tilt", "double").
         doc("Triggers the 360 acquisition and gives the tilt angle to use")
     input_port("sync_in", "int").
-        doc("Triggers the 360 acquisition and gives the tilt angle to use")
+        doc("feedback when images have been processed by dem generation")
 
     # Output ports
     output_port("pan_angle_out", "double").
