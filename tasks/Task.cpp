@@ -26,8 +26,12 @@ bool Task::configureHook()
     save_frame = false;
     left_frame_saved = false;
     right_frame_saved = false;
+    processing = false;
+    triggered = false;
+    processed = false;
     position_index = 0;
     set_counter = 0;
+    tilt_angle_goal = 0;
     
     position_error_margin = _positionErrorMargin.get() * DEG2RAD;
     frame_delay_um.microseconds = _frameDelayTimeMs.get() * 1000LL;
@@ -76,6 +80,7 @@ void Task::updateHook()
     
     if(_trigger_tilt.read(trigger_tilt) == RTT::NewData){
         triggered=true;
+        _shutter_control.write(true); // This stops the shutter controller
     }
  
     if(_sync_in.read(sync) == RTT::NewData){
@@ -92,7 +97,7 @@ void Task::updateHook()
         // Check if the pan and tilt angles have arrived to requested positions
         if(fabs(pan_angle_in - pan_angle_goal) <= position_error_margin && fabs(tilt_angle_temp - tilt_angle_goal) <= position_error_margin)
         {
-            if(!save_frame)
+            if(!save_frame && !processing)
             {
                 // The pan and tilt have reached their destination, now the cameras can take a picture set
                 goal_arrival_time = base::Time::now();
@@ -111,10 +116,12 @@ void Task::updateHook()
                 save_frame = false;
                 left_frame_saved = false;
                 right_frame_saved = false;
+                processing=true;
             }
             else if (processed)
             { 
                 processed=false;
+                processing=false;
                 // Final position reached
                 if(position_index == camera_positions.size() - 1)
                 {
@@ -125,6 +132,7 @@ void Task::updateHook()
                     position_index = 0;
                     
                     triggered=false;
+                    _shutter_control.write(false); // Restart the shutter controller
                     // Change the state to STOPPED
                     //state(STOPPED);
                     // This must be explicitly called to stop the component at low level or there will be issues in ruby
@@ -132,6 +140,9 @@ void Task::updateHook()
                 }
                 else
                 {
+                    //Wait for TM/TC to send the files. Helps the Transformer (in principle).
+                    sleep(1);
+
                     // Picture pair has been taken, proceed to the next position
                     position_index++;
                     

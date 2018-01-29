@@ -34,9 +34,9 @@ namespace pancam_360
     {
 	friend class TaskBase;
     protected:
-        static const double DEG2RAD = 3.14159/180;
+        static constexpr double DEG2RAD = 3.14159/180;
         // For tilt angles they need to be multiplied by 4 to get them in proper units because of the gearing
-        static const double TILT_MULTIPLIER = 4;
+        static constexpr double TILT_MULTIPLIER = 4;
         
         // PTU pan and tilt angles from the PTU module (inputs for feedback)
         double pan_angle_in;
@@ -50,6 +50,7 @@ namespace pancam_360
         int sync;
         bool triggered;
         bool processed;
+        bool processing;
 
         // Position error margin for the pan and tilt positions
         double position_error_margin;
