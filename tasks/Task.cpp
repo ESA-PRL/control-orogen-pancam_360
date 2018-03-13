@@ -81,6 +81,11 @@ void Task::updateHook()
     if(_trigger_tilt.read(trigger_tilt) == RTT::NewData){
         triggered=true;
         _shutter_control.write(true); // This stops the shutter controller
+
+        // empty sync buffer and reset 'processed' state
+        // so that we really wait for the next processed product.
+        _sync_in.read(sync);
+        processed = false;
     }
  
     if(_sync_in.read(sync) == RTT::NewData){
