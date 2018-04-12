@@ -2,7 +2,6 @@
 #define PANCAM_360_TASK_TASK_HPP
 
 #include "pancam_360/TaskBase.hpp"
-#include "controldev/JoystickTaskBase.hpp"
 
 namespace pancam_360
 {
